@@ -78,7 +78,7 @@ jobs:
         run: echo "::error title=Falló una comprobación::Abre el paso marcado en rojo y lee el primer FAIL"
       - name: Guardar la salida de las pruebas
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: salida-pruebas-py${{ matrix.python }}
           path: salida-pruebas.txt
