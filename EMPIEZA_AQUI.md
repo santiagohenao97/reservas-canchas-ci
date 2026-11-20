@@ -29,7 +29,7 @@ En Windows usa `py -m unittest discover -s tests -v`. Debe terminar con `OK`.
 
 **3. Véelo correr (con GitHub).** Sube el repositorio y abre Actions. Para verlo en vivo: **Run workflow** (ejecución manual). Abre la ejecución y entra al job `pruebas`. Al final de la página de la ejecución verás el **resumen** y los **artefactos**.
 
-**4. Rómpelo a propósito, sin hacer commits.** Run workflow otra vez, con la casilla `romper` marcada. Debe fallar la prueba `test_hora_fuera_de_rango` en ambas versiones de Python, y `construccion` **no corre**. Lee el mensaje antes de tocar nada.
+**4. Rómpelo a propósito.** En una rama nueva, cambia la línea 6 de `app/main.py`: `2[0-1]` por `2[0-3]` (acepta 23:00). Haz commit y push. Debe fallar la prueba `test_hora_fuera_de_rango` en ambas versiones de Python, y `construccion` **no corre**. Lee el mensaje antes de tocar nada.
 Sin GitHub, lo mismo en tu equipo:
 ```
 git apply cambios/rompe-horario.patch
