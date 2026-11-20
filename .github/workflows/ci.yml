@@ -1,0 +1,136 @@
+name: ci
+
+# Cuándo se dispara: push, pull request y ejecución manual.
+# paths-ignore: cambiar solo documentación no gasta minutos de CI.
+on:
+  push:
+    paths-ignore: ["**.md", "docs/**", "evidencias/**", "ejemplos/**"]
+  pull_request:
+    paths-ignore: ["**.md", "docs/**", "evidencias/**", "ejemplos/**"]
+  workflow_dispatch:
+    inputs:
+      romper:
+        description: "Aplicar el cambio controlado que rompe una prueba (demo en vivo)"
+        type: boolean
+        default: false
+      promover:
+        description: "Pedir la promoción simulada si todo sale bien"
+        type: boolean
+        default: false
+
+# Permisos del token: solo lectura del código. Este flujo no usa secretos.
+permissions:
+  contents: read
+
+# Si llega otro cambio a la misma rama, cancela la ejecución anterior.
+concurrency:
+  group: ci-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  lint-workflows:
+    name: lint de workflows
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Revisar los workflows con actionlint
+        run: docker run --rm -v "$PWD:/repo" -w /repo rhysd/actionlint:latest -color
+
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false          # que una versión de Python que falla no oculte a la otra
+      matrix:
+        python: ["3.11", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - name: Aplicar el cambio controlado (solo demo)
+        if: ${{ inputs.romper }}
+        run: git apply cambios/rompe-horario.patch
+      - name: Instalar dependencias de prueba
+        run: python -m pip install -r requirements-dev.txt
+      - name: Correr pruebas con cobertura
+        run: |
+          set -o pipefail
+          coverage run -m unittest discover -s tests -v 2>&1 | tee salida-pruebas.txt
+      - name: Informe de cobertura (piso del 25 % en app/)
+        run: |
+          set -o pipefail
+          coverage report -m --include="app/*" --fail-under=25 | tee -a salida-pruebas.txt
+      - name: Resumen en la página de la ejecución
+        if: always()
+        run: |
+          {
+            echo "### Pruebas · Python ${{ matrix.python }}"
+            echo '```'
+            tail -n 14 salida-pruebas.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Anotar el fallo
+        if: failure()
+        run: echo "::error title=Falló una comprobación::Abre el paso marcado en rojo y lee el primer FAIL"
+      - name: Guardar la salida de las pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salida-pruebas-py${{ matrix.python }}
+          path: salida-pruebas.txt
+
+  construccion:
+    # Solo corre si TODAS las combinaciones de pruebas pasaron.
+    needs: pruebas
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construir la imagen
+        run: docker build -t reservas-canchas:ci --build-arg APP_VERSION=ci --build-arg REVISION=${{ github.sha }} .
+      - name: Arrancar el contenedor
+        run: docker run -d --name r1 -p 8000:8000 reservas-canchas:ci
+      - name: Comprobar con una reserva real
+        run: |
+          set -o pipefail
+          ./comprobar.sh http://localhost:8000 ci | tee salida-comprobacion.txt
+      - name: Resumen en la página de la ejecución
+        if: always()
+        run: |
+          {
+            echo "### Comprobación con una reserva real"
+            echo '```'
+            cat salida-comprobacion.txt 2>/dev/null || echo "no se ejecutó"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Mostrar registros si algo falló
+        if: failure()
+        run: docker logs r1
+
+  promocion:
+    name: promoción (simulada)
+    # Solo a pedido (ejecución manual con promover=true) y con todo en verde.
+    needs: [lint-workflows, pruebas, construccion]
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.promover }}
+    runs-on: ubuntu-latest
+    # Un "environment" puede exigir aprobación humana: se configura en
+    # Settings > Environments > produccion > Required reviewers.
+    environment: produccion
+    steps:
+      - name: Simular la publicación
+        run: |
+          echo "Aquí iría la publicación de la versión (imagen, despliegue)."
+          echo "En este ejemplo no se publica nada: es una simulación."
+          {
+            echo "### Promoción simulada"
+            echo "Versión: ${{ github.sha }}"
+            echo "No se publicó nada."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+# Estado real: este flujo valida y puede simular una promoción con aprobación.
+# Lo que sigue pendiente: la regla de protección de la rama (Settings > Branches),
+# que es lo que impide fusionar un cambio con el check en rojo.

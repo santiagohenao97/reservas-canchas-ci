@@ -1,0 +1,13 @@
+# EJEMPLO DE LO QUE NO HAY QUE HACER (no se ejecuta: no está en .github/workflows)
+# El job termina bien, pero no ejecutó ninguna prueba: la carpeta "test" no existe (es "tests").
+# Verde no significa validado. Hay que leer qué se ejecutó.
+name: ci-sin-pruebas
+on: [push]
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "validando..."
+      - run: ls test || echo "no hay carpeta test, sigo"
+      - run: echo "pruebas completadas"

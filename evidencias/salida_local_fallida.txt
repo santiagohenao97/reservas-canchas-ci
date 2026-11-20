@@ -1,0 +1,20 @@
+test_db_normal_funciona (test_validacion.BaseDeDatos) ... ok
+test_cancha_inexistente (test_validacion.Validacion) ... ok
+test_hora_fuera_de_rango (test_validacion.Validacion) ... FAIL
+test_nombre_vacio (test_validacion.Validacion) ... ok
+test_reserva_valida (test_validacion.Validacion) ... ok
+test_ultima_hora_valida (test_validacion.Validacion) ... ok
+
+======================================================================
+FAIL: test_hora_fuera_de_rango (test_validacion.Validacion)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "demo-e4/tests/test_validacion.py", line 20, in test_hora_fuera_de_rango
+    self.assertIsNotNone(validar({"cancha": 1, "hora": "23:00", "nombre": "Camila"})[1],
+AssertionError: unexpectedly None : 23:00 está fuera del horario (08:00 a 21:00) y debe rechazarse
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.010s
+
+FAILED (failures=1)
+exit=1

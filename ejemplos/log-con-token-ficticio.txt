@@ -1,0 +1,5 @@
+# Log INVENTADO para practicar. Ningún valor es real.
+Run ./desplegar.sh
+Conectando con el proveedor...
+TOKEN_DE_PRUEBA=EJEMPLO-FICTICIO-0000-NO-ES-UNA-CLAVE
+Respuesta: 200

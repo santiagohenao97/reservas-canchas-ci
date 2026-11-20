@@ -1,0 +1,13 @@
+# EJEMPLO DE LO QUE NO HAY QUE HACER (no se ejecuta: no está en .github/workflows)
+# El paso de pruebas falla, pero "|| true" convierte cualquier fallo en éxito.
+# El job termina en verde y nadie se entera.
+name: ci-falla-ignorada
+on: [push]
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: python -m unittest discover -s tests -v || true

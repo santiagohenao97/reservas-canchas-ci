@@ -1,0 +1,12 @@
+test_db_normal_funciona (test_validacion.BaseDeDatos) ... ok
+test_cancha_inexistente (test_validacion.Validacion) ... ok
+test_hora_fuera_de_rango (test_validacion.Validacion) ... ok
+test_nombre_vacio (test_validacion.Validacion) ... ok
+test_reserva_valida (test_validacion.Validacion) ... ok
+test_ultima_hora_valida (test_validacion.Validacion) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.014s
+
+OK
+exit=0

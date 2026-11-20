@@ -1,0 +1,12 @@
+# Mantiene al día las acciones del flujo y las dependencias de prueba.
+# Abre pull requests con las actualizaciones: el propio CI las valida.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"

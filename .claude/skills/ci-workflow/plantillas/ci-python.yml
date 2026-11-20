@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pruebas:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Correr pruebas
+        run: |
+          set -o pipefail
+          python -m unittest discover -s tests -v 2>&1 | tee salida-pruebas.txt
+      - name: Guardar la salida
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: salida-pruebas
+          path: salida-pruebas.txt

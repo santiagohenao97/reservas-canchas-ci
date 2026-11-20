@@ -1,0 +1,25 @@
+# EJERCICIO "CAZA DE ERRORES" · NO SE EJECUTA (no está en .github/workflows)
+# Este workflow tiene 8 defectos plantados a propósito. Encuéntralos y explica qué podría pasar.
+name: ci
+on:
+  pull_request_target:
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - uses: actions/checkout@main
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: |
+          echo "Revisando: ${{ github.event.pull_request.title }}"
+      - run: pip install -r requirements.txt
+      - run: pytest || true
+      - run: |
+          curl -s -H "Authorization: ${{ secrets.TOKEN_DESPLIEGUE }}" https://example.com/avisar
+      - run: |
+          echo "token=${{ secrets.TOKEN_DESPLIEGUE }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: todo
+          path: .
