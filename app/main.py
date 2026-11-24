@@ -3,7 +3,7 @@ import json, os, re, sqlite3
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 VERSION = os.environ.get("APP_VERSION", "dev")  # la fija el build: así la imagen es identificable
-HORA = re.compile(r"^(0[8-9]|1[0-9]|2[0-1]):00$")  # horas en punto, 08:00 a 21:00
+HORA = re.compile(r"^(0[8-9]|1[0-9]|2[0-3]):00$")  # horas en punto, 08:00 a 21:00
 
 
 def validar(d):
